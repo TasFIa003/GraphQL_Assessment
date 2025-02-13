@@ -36,7 +36,7 @@
 ## Expected Output:
 * Console output:
   * Fetched country details
-  * Posted country details successfully (or logs errors if any occur)
+  * Posted country details successfully (or logs errors if any occur).
   * Confirmation message for CSV file creation.
     
 *  Generates a CSV file named `countries.csv` in the same directory which contains all the details of all fetched countries.
