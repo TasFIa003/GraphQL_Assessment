@@ -22,7 +22,7 @@
   ```
   python script.py
   ```
-### Note: `time` and `CSV` are built-in Python libraries, so do not need to install them separately,
+### Note: `time` and `CSV` are built-in Python libraries, so do not need to install them separately.
 
 ## Workflow Execution
 * The script queries the GraphQL API to retrieve country data.
