@@ -2,7 +2,8 @@ import requests
 import time
 import csv
 
-def fetch_countries():
+#fetching country data from the GraphQL API
+def fetchCountries():
     url = "https://countries.trevorblades.com/"
     query = """
     query {
@@ -13,15 +14,17 @@ def fetch_countries():
       }
     }
     """
-    response = requests.post(url, json={'query': query})
-    
-    if response.status_code == 200:
+    response = requests.post(url, json={'query': query}) #sending request to API
+    code= response.status_code
+    if code == 200:
+        # extracting relevant data
         return response.json().get("data", {}).get("countries", [])
     else:
-        print(f"Error fetching countries: {response.status_code}")
+        # logging error
+        print(f"Error fetching countries: {code}")
         return []
-
-def post_country(country):
+# Function for posting a selected country's details to a REST API
+def postCountry(country):
     url = "https://jsonplaceholder.typicode.com/posts"
     payload = {
         "title": f"Country: {country['name']}",
@@ -29,47 +32,52 @@ def post_country(country):
         "userId": 1
     }
     
-    retry_attempts = 3
+    attempts = 3 # retry attempts number
     delay = 1  # Initial delay in seconds
     
-    for attempt in range(retry_attempts):
+    for attempt in range(attempts):
         response = requests.post(url, json=payload)
-        
-        if response.status_code == 201:
+        code= response.status_code
+
+        if code == 201: #success case
             return response.json()
-        elif response.status_code == 403:
-            print("403 Forbidden: Skipping request.")
+        elif code == 403: #forbidden error, skipping
+            print("403 Forbidden -> Skipping request.")
             return None
-        elif response.status_code == 500:
-            print(f"500 Internal Server Error: Retrying in {delay} seconds...")
+        elif code == 500: # Internal server error.Retry the request with exponential backoff.
+            print(f"500 Internal Server Error -> Retrying in {delay} seconds.")
             time.sleep(delay)
-            delay *= 2  # Exponential backoff
+            delay *= 2  # Increase delay exponentially
         else:
-            print(f"Unexpected error: {response.status_code}")
+            print(f"Unexpected error: {code}") # logging other errors
             return None
 
-def save_to_csv(countries, filename="countries.csv"):
+# function for saving all fetched country data to a csv file
+def saveCountries(countries, filename="countries.csv"):
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Country Name", "Capital", "Currency"])
+        writer.writerow(["Country Name", "Capital", "Currency"]) # headers of CSV file
         for country in countries:
             writer.writerow([country["name"], country.get("capital", "N/A"), country.get("currency", "N/A")])
 
+
+# Main function to automate the entire workflow
 def main():
-    countries = fetch_countries()
+    countries = fetchCountries()
     if not countries:
-        print("No countries fetched. Exiting...")
+        # If no data is fetched then exit
+        print("No countries fetched.")
         return
     
-    selected_country = countries[0]  # Selecting the first country
-    print(f"Posting details of {selected_country['name']}...")
-    response = post_country(selected_country)
+    selectedCountry = countries[0]  # Selecting the first country
+    print(f"Posting details of {selectedCountry['name']}")
+    response = postCountry(selectedCountry) # posting country details
     
     if response:
         print("Posted successfully:", response)
     
-    save_to_csv(countries)
-    print("Countries saved to CSV.")
+    saveCountries(countries) # saving all data to CSV
+    print("Countries saved to CSV successfully.")
 
 if __name__ == "__main__":
     main()
